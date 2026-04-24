@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>EFSIM BICS Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700;800;900&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════
+   DESIGN SYSTEM — Premium Light Blue
+═══════════════════════════════════════ */
+:root{
+  --sky:       #E8F4FD;
+  --sky2:      #D0E8F8;
+  --sky3:      #B8DAF3;
+  --navy:      #0D3566;
+  --navy2:     #1251A3;
+  --blue:      #1976D2;
+  --blue2:     #2196F3;
+  --blue-lt:   #BBDEFB;
+  --gold:      #F59E0B;
+  --gold2:     #FCD34D;
+  --white:     #FFFFFF;
+  --card:      rgba(255,255,255,0.78);
+  --card2:     rgba(255,255,255,0.55);
+  --correct:   #16A34A;
+  --correct-lt:#DCFCE7;
+  --wrong:     #DC2626;
+  --wrong-lt:  #FEE2E2;
+  --text:      #0D3566;
+  --text2:     #1E4D8C;
+  --text3:     #5B7FA6;
+  --border:    rgba(25,118,210,0.18);
+  --shadow:    0 4px 24px rgba(13,53,102,0.12);
+  --shadow2:   0 2px 12px rgba(13,53,102,0.08);
+  --r:         14px;
+  --r2:        10px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+
+body{
+  font-family:'Nunito',sans-serif;
+  background: linear-gradient(160deg, #D6EEFF 0%, #EBF5FF 40%, #F0F8FF 70%, #DAF0FF 100%);
+  color:var(--text);
+  min-height:100vh;
+  overflow:hidden;
+}
+
+/* Subtle grid texture */
+body::before{
+  content:'';
+  position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    linear-gradient(rgba(25,118,210,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(25,118,210,.04) 1px, transparent 1px);
+  background-size:32px 32px;
+}
+/* Glowing orbs */
+body::after{
+  content:'';
+  position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse 60% 40% at 80% 10%, rgba(33,150,243,.12) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 60% at 10% 90%, rgba(25,118,210,.10) 0%,transparent 55%);
+}
+
+#app{
+  position:relative;z-index:10;
+  width:100%;max-width:440px;
+  height:100vh;
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  margin:0 auto;
+}
+
+/* ── LANGUAGE BAR ── */
+#lang-bar{
+  flex-shrink:0;display:flex;gap:5px;
+  padding:7px 12px;
+  background:rgba(255,255,255,.7);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(10px);
+  overflow-x:auto;scrollbar-width:none;
+}
+#lang-bar::-webkit-scrollbar{display:none;}
+.lang-btn{
+  flex-shrink:0;padding:4px 10px;border-radius:20px;
+  border:1.5px solid var(--border);
+  background:transparent;
+  color:var(--text3);font-size:11px;font-weight:700;
+  cursor:pointer;transition:all .18s;white-space:nowrap;
+}
+.lang-btn.active{background:var(--navy);border-color:var(--navy);color:#fff;}
+
+/* ── SCREENS ── */
+.screen{display:none;flex-direction:column;flex:1;overflow-y:auto;overflow-x:hidden;}
+.screen.active{display:flex;}
+@keyframes slideUp{from{opacity:0;transform:translateY(22px);}to{opacity:1;transform:translateY(0);}}
+@keyframes popIn{from{opacity:0;transform:scale(.88);}to{opacity:1;transform:scale(1);}}
+.anim{animation:slideUp .38s cubic-bezier(.22,1,.36,1) both;}
+.pop{animation:popIn .3s cubic-bezier(.34,1.56,.64,1) both;}
+
+/* ════════════════════════════════════
+   REGISTRATION SCREEN
+════════════════════════════════════ */
+#reg-screen{padding:0 16px 24px;align-items:stretch;}
+.reg-header{
+  background:linear-gradient(135deg, var(--navy) 0%, var(--navy2) 100%);
+  padding:22px 20px 18px;
+  text-align:center;
+  border-radius:0 0 24px 24px;
+  margin:0 -16px 20px;
+  flex-shrink:0;
+  position:relative;overflow:hidden;
+}
+.reg-header::before{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 20 L40 20 M20 0 L20 40' stroke='white' stroke-width='.4' opacity='.08'/%3E%3C/svg%3E");
+}
+.reg-logo-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;}
+.reg-logo-icon{font-size:36px;filter:drop-shadow(0 2px 8px rgba(0,0,0,.3));}
+.reg-brand{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;
+  letter-spacing:3px;color:var(--gold2);text-transform:uppercase;}
+.reg-title{font-family:'Barlow Condensed',sans-serif;font-size:30px;font-weight:900;
+  color:#fff;letter-spacing:1px;line-height:1.1;margin-bottom:4px;}
+.reg-title span{color:var(--gold2);}
+.reg-sub{font-size:12px;color:rgba(255,255,255,.65);letter-spacing:.3px;}
+
+/* FORM */
+.form-section{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:16px;
+  box-shadow:var(--shadow2);
+  margin-bottom:12px;
+}
+.form-section-title{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:12px;font-weight:700;letter-spacing:2px;
+  color:var(--text3);text-transform:uppercase;
+  margin-bottom:10px;display:flex;align-items:center;gap:6px;
+}
+.form-section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+
+.field{margin-bottom:10px;}
+.field:last-child{margin-bottom:0;}
+.field label{display:block;font-size:12px;font-weight:700;color:var(--text2);margin-bottom:5px;}
+.field input, .field select{
+  width:100%;padding:11px 13px;
+  border:1.5px solid var(--border);
+  border-radius:var(--r2);
+  background:rgba(255,255,255,.9);
+  color:var(--text);font-family:'Nunito',sans-serif;font-size:14px;font-weight:600;
+  outline:none;transition:border-color .18s,box-shadow .18s;
+  appearance:none;-webkit-appearance:none;
+}
+.field input:focus, .field select:focus{
+  border-color:var(--blue);
+  box-shadow:0 0 0 3px rgba(33,150,243,.15);
+}
+.field input::placeholder{color:var(--text3);font-weight:500;}
+
+/* custom select arrow */
+.select-wrap{position:relative;}
+.select-wrap::after{
+  content:'▾';position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  color:var(--blue);font-size:14px;pointer-events:none;
+}
+
+/* dept chips */
+.dept-chips{display:flex;flex-wrap:wrap;gap:7px;}
+.dept-chip{
+  padding:8px 14px;border-radius:30px;
+  border:1.5px solid var(--border);
+  background:rgba(255,255,255,.8);
+  color:var(--text2);font-size:12px;font-weight:700;
+  cursor:pointer;transition:all .18s;
+  user-select:none;
+}
+.dept-chip.selected{background:var(--navy);border-color:var(--navy);color:#fff;}
+.dept-chip input[type=text]{
+  border:none;background:transparent;outline:none;
+  font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;
+  color:var(--text);width:80px;padding:0;
+}
+
+.btn-begin{
+  width:100%;padding:16px;border:none;border-radius:var(--r);
+  background:linear-gradient(135deg,var(--navy),var(--navy2));
+  color:white;font-family:'Barlow Condensed',sans-serif;
+  font-size:22px;font-weight:900;letter-spacing:2px;
+  cursor:pointer;text-transform:uppercase;
+  box-shadow:0 6px 24px rgba(13,53,102,.28);
+  transition:transform .15s,box-shadow .15s;
+  margin-top:4px;
+}
+.btn-begin:active{transform:scale(.98);}
+.error-msg{color:var(--wrong);font-size:12px;font-weight:700;margin-top:6px;display:none;}
+.error-msg.show{display:block;}
+
+/* ════════════════════════════════════
+   HUD
+════════════════════════════════════ */
+#hud{
+  display:none;
+  background:linear-gradient(135deg,var(--navy),var(--navy2));
+  padding:10px 16px 8px;
+  flex-direction:row;align-items:center;gap:10px;flex-shrink:0;
+  border-bottom:2px solid var(--blue-lt);
+}
+#hud.on{display:flex;}
+.hud-left{flex:1;}
+.hud-lbl{font-size:9px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.55);text-transform:uppercase;}
+.hud-score{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;color:var(--gold2);line-height:1;}
+.hud-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;}
+.hud-lives{display:flex;gap:3px;}
+.heart{font-size:18px;transition:all .2s;}
+.heart.lost{filter:grayscale(1);opacity:.2;transform:scale(.8);}
+.hud-q{font-size:11px;color:rgba(255,255,255,.6);font-weight:700;}
+.hud-streak{font-size:11px;color:var(--gold2);font-weight:700;}
+.timer-wrap{height:4px;background:rgba(255,255,255,.15);border-radius:2px;margin-top:6px;overflow:hidden;}
+.timer-bar{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--gold2),#60A5FA);transition:width .5s linear,background .5s;}
+.timer-bar.warn{background:linear-gradient(90deg,#EF4444,#F97316);}
+
+/* ════════════════════════════════════
+   QUIZ SCREEN
+════════════════════════════════════ */
+#quiz-screen{padding:0;}
+#q-inner{padding:14px 14px 0;}
+
+.q-pill{
+  display:inline-flex;align-items:center;gap:5px;
+  background:var(--blue-lt);border-radius:20px;
+  padding:3px 10px;font-size:9px;font-weight:800;
+  letter-spacing:2px;color:var(--navy2);text-transform:uppercase;margin-bottom:6px;
+}
+.q-num{font-size:10px;font-weight:700;color:var(--text3);margin-bottom:5px;}
+
+/* SCENE BOX */
+.scene-box{
+  border-radius:var(--r);overflow:hidden;margin-bottom:14px;
+  background:var(--card);
+  border:1.5px solid var(--border);
+  box-shadow:var(--shadow2);
+  display:flex;align-items:center;justify-content:center;
+  padding:18px;min-height:120px;
+  flex-direction:column;gap:8px;position:relative;
+}
+.scene-emoji{font-size:58px;line-height:1;}
+.scene-label{font-size:13px;font-weight:800;color:var(--text2);text-align:center;}
+.scene-row{display:flex;gap:16px;align-items:center;flex-wrap:wrap;justify-content:center;}
+.scene-item{display:flex;flex-direction:column;align-items:center;gap:5px;
+  font-size:11px;font-weight:700;color:var(--text2);text-align:center;}
+.wrong-mark{position:absolute;top:10px;right:10px;font-size:22px;}
+
+.q-instruction{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:22px;font-weight:800;line-height:1.25;
+  margin-bottom:14px;text-align:center;color:var(--navy);
+}
+
+/* COLOUR TAP GRID */
+.ctap-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:14px;}
+.ctap{
+  border-radius:var(--r);padding:12px 6px;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  cursor:pointer;transition:transform .15s,box-shadow .15s;
+  border:2.5px solid transparent;
+  background:var(--card);
+  box-shadow:var(--shadow2);
+  font-size:10px;font-weight:800;color:var(--text);
+}
+.ctap:active{transform:scale(.93);}
+.ctap.correct{border-color:var(--correct);background:var(--correct-lt);box-shadow:0 0 18px rgba(22,163,74,.25);}
+.ctap.wrong{border-color:var(--wrong);background:var(--wrong-lt);}
+.ctap.reveal{border-color:var(--correct);background:var(--correct-lt);opacity:.7;}
+.ctap.disabled{pointer-events:none;}
+
+/* MCQ OPTIONS */
+.opts{display:flex;flex-direction:column;gap:9px;margin-bottom:14px;}
+.opt{
+  display:flex;align-items:center;gap:12px;
+  background:var(--card);border:2px solid var(--border);
+  border-radius:var(--r);padding:13px 14px;
+  cursor:pointer;transition:all .18s;color:var(--text);
+  width:100%;text-align:left;font-family:'Nunito',sans-serif;
+  font-size:14px;font-weight:700;box-shadow:var(--shadow2);
+}
+.opt-icon{font-size:26px;flex-shrink:0;}
+.opt:not(:disabled):hover{border-color:var(--blue);background:var(--blue-lt);}
+.opt.correct{background:var(--correct-lt);border-color:var(--correct)!important;color:var(--correct);}
+.opt.wrong{background:var(--wrong-lt);border-color:var(--wrong)!important;color:var(--wrong);}
+.opt.reveal{background:var(--correct-lt);border-color:var(--correct)!important;}
+.opt:disabled{cursor:default;pointer-events:none;}
+
+/* TRUE FALSE */
+.tf-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+.tf-btn{
+  border-radius:var(--r);padding:22px 10px;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  border:2px solid var(--border);cursor:pointer;transition:all .2s;
+  font-size:14px;font-weight:800;color:var(--text);
+  background:var(--card);box-shadow:var(--shadow2);letter-spacing:.3px;
+}
+.tf-btn:active{transform:scale(.95);}
+.tf-t:hover{border-color:var(--correct);background:var(--correct-lt);}
+.tf-f:hover{border-color:var(--wrong);background:var(--wrong-lt);}
+.tf-btn.correct{background:var(--correct-lt);border-color:var(--correct);color:var(--correct);}
+.tf-btn.wrong{background:var(--wrong-lt);border-color:var(--wrong);color:var(--wrong);}
+.tf-btn.reveal{border-color:var(--correct);background:var(--correct-lt);}
+.tf-btn:disabled{pointer-events:none;}
+.tf-big{font-size:40px;}
+
+/* FEEDBACK */
+.fb{border-radius:var(--r);padding:12px 14px;margin-bottom:12px;display:none;
+  animation:slideUp .3s ease both;font-size:13px;line-height:1.6;}
+.fb.on{display:block;}
+.fb.ok{background:var(--correct-lt);border:1.5px solid var(--correct);}
+.fb.bad{background:var(--wrong-lt);border:1.5px solid var(--wrong);}
+.fb-head{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:900;
+  margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+.fb-head.ok{color:var(--correct);}
+.fb-head.bad{color:var(--wrong);}
+.fb-scene{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;padding:8px 10px;
+  background:rgba(255,255,255,.6);border-radius:8px;}
+.fb-scene-item{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--text);}
+
+.btn-next{
+  width:100%;padding:15px;border:none;border-radius:var(--r);
+  background:linear-gradient(135deg,var(--navy),var(--navy2));
+  color:white;font-family:'Barlow Condensed',sans-serif;
+  font-size:20px;font-weight:900;letter-spacing:1.5px;
+  cursor:pointer;text-transform:uppercase;
+  box-shadow:0 4px 18px rgba(13,53,102,.22);
+  transition:transform .15s;display:none;margin-bottom:14px;
+}
+.btn-next.on{display:block;animation:slideUp .3s ease both;}
+.btn-next:active{transform:scale(.97);}
+
+/* ════════════════════════════════════
+   RESULT SCREEN
+════════════════════════════════════ */
+#result-screen{align-items:center;padding:0 16px 24px;gap:0;}
+
+.result-header{
+  background:linear-gradient(135deg,var(--navy),var(--navy2));
+  width:calc(100% + 32px);margin:0 -16px 0;
+  padding:20px 20px 60px;
+  text-align:center;position:relative;
+  border-radius:0 0 40px 40px;
+  margin-bottom:-40px;
+}
+.r-medal{font-size:52px;display:block;margin-bottom:6px;}
+.r-title{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;color:#fff;margin-bottom:2px;}
+.r-name-badge{display:inline-block;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);
+  border-radius:20px;padding:4px 14px;font-size:12px;font-weight:700;color:rgba(255,255,255,.85);margin-bottom:4px;}
+
+/* Score ring card */
+.score-card{
+  background:var(--card);border:1.5px solid var(--border);
+  border-radius:20px;box-shadow:var(--shadow);
+  padding:20px 16px 16px;width:100%;
+  display:flex;flex-direction:column;align-items:center;
+  margin-bottom:14px;position:relative;z-index:1;
+}
+.score-ring{
+  width:120px;height:120px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:10px;position:relative;
+  background:conic-gradient(var(--blue2) var(--pct,0%),var(--sky2) 0%);
+  box-shadow:0 4px 20px rgba(25,118,210,.2);
+}
+.score-ring::before{content:'';width:88px;height:88px;border-radius:50%;
+  background:var(--white);position:absolute;}
+.score-num{position:relative;z-index:1;font-family:'Barlow Condensed',sans-serif;
+  font-size:30px;font-weight:900;color:var(--navy);}
+.pass-badge{
+  display:inline-block;padding:5px 18px;border-radius:30px;
+  font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:900;letter-spacing:1px;
+  margin-bottom:10px;
+}
+.pass-badge.pass{background:var(--correct-lt);color:var(--correct);border:1.5px solid var(--correct);}
+.pass-badge.fail{background:var(--wrong-lt);color:var(--wrong);border:1.5px solid var(--wrong);}
+
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;margin-bottom:12px;}
+.stat-b{background:var(--sky);border-radius:10px;padding:10px 8px;text-align:center;
+  border:1px solid var(--border);}
+.stat-v{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;color:var(--navy);}
+.stat-l{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-top:2px;}
+
+/* worker info card */
+.info-card{
+  background:var(--card);border:1.5px solid var(--border);
+  border-radius:var(--r);box-shadow:var(--shadow2);
+  padding:14px;width:100%;margin-bottom:12px;
+}
+.info-row{display:flex;align-items:center;gap:10px;padding:6px 0;
+  border-bottom:1px solid var(--border);}
+.info-row:last-child{border-bottom:none;}
+.info-lbl{font-size:11px;font-weight:700;color:var(--text3);width:80px;flex-shrink:0;}
+.info-val{font-size:13px;font-weight:700;color:var(--text);}
+
+.rev-title{font-size:10px;font-weight:800;color:var(--text3);letter-spacing:1.5px;
+  text-transform:uppercase;margin-bottom:8px;width:100%;padding-top:2px;}
+.rev-list{width:100%;display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
+.rev-item{display:flex;align-items:flex-start;gap:10px;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:10px;padding:10px 12px;font-size:12px;line-height:1.5;color:var(--text);}
+.rev-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
+
+/* submission status */
+.submit-status{
+  width:100%;padding:12px 14px;border-radius:var(--r);
+  text-align:center;font-size:13px;font-weight:700;
+  margin-bottom:12px;display:none;
+}
+.submit-status.sending{background:var(--blue-lt);color:var(--navy);border:1px solid var(--blue);display:block;}
+.submit-status.sent{background:var(--correct-lt);color:var(--correct);border:1px solid var(--correct);display:block;}
+.submit-status.error{background:var(--wrong-lt);color:var(--wrong);border:1px solid var(--wrong);display:block;}
+
+/* TOAST */
+.toast{position:fixed;top:14px;left:50%;transform:translateX(-50%) translateY(-70px);
+  background:var(--navy);color:#fff;font-weight:800;font-size:13px;
+  padding:10px 18px;border-radius:30px;z-index:999;
+  transition:transform .35s cubic-bezier(.34,1.56,.64,1);
+  white-space:nowrap;pointer-events:none;box-shadow:var(--shadow);}
+.toast.on{transform:translateX(-50%) translateY(0);}
+.streak-badge{
+  position:fixed;top:50%;left:50%;
+  transform:translate(-50%,-50%) scale(0);
+  background:linear-gradient(135deg,var(--gold),#F97316);color:#fff;
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:22px;font-weight:900;padding:16px 28px;border-radius:var(--r);
+  z-index:998;pointer-events:none;text-align:center;
+  box-shadow:0 10px 40px rgba(245,158,11,.4);
+  transition:transform .35s cubic-bezier(.34,1.56,.64,1);}
+.streak-badge.on{transform:translate(-50%,-50%) scale(1);}
+
+/* btn row */
+.btn-row{display:flex;gap:8px;width:100%;margin-top:4px;}
+.btn-sec{flex:1;padding:13px;border:2px solid var(--border);
+  border-radius:var(--r);background:var(--card);
+  color:var(--navy);font-family:'Barlow Condensed',sans-serif;
+  font-size:16px;font-weight:700;cursor:pointer;transition:all .18s;}
+.btn-sec:hover{border-color:var(--navy);background:var(--sky);}
+
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-thumb{background:rgba(25,118,210,.2);border-radius:2px;}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ══ LANG BAR ══ -->
+<div id="lang-bar">
+  <button class="lang-btn active" onclick="setLang('en')">🇬🇧 EN</button>
+  <button class="lang-btn" onclick="setLang('ur')">🇵🇰 اردو</button>
+  <button class="lang-btn" onclick="setLang('hi')">🇮🇳 हिंदी</button>
+  <button class="lang-btn" onclick="setLang('ne')">🇳🇵 नेपाली</button>
+  <button class="lang-btn" onclick="setLang('bn')">🇧🇩 বাংলা</button>
+</div>
+
+<!-- ══════════════════════════════════════
+  SCREEN 1: REGISTRATION
+══════════════════════════════════════ -->
+<div class="screen active" id="reg-screen">
+
+  <div class="reg-header">
+    <div class="reg-logo-row">
+      <span class="reg-logo-icon">🧹</span>
+    </div>
+    <div class="reg-brand">EFSIM · FACILITIES MANAGEMENT</div>
+    <div class="reg-title">BICS <span>COLOUR CODE</span> QUIZ</div>
+    <div class="reg-sub" id="reg-sub-txt">Hygiene Standards Assessment</div>
+  </div>
+
+  <!-- Personal Info -->
+  <div class="form-section">
+    <div class="form-section-title">👤 <span id="lbl-personal">Personal Details</span></div>
+    <div class="field">
+      <label id="lbl-name">Full Name</label>
+      <input type="text" id="inp-name" placeholder="Enter your full name">
+    </div>
+    <div class="field">
+      <label id="lbl-id">EFSIM ID</label>
+      <input type="text" id="inp-id" placeholder="e.g. EFS-00123">
+    </div>
+  </div>
+
+  <!-- Department -->
+  <div class="form-section">
+    <div class="form-section-title">🏢 <span id="lbl-dept-sec">Department</span></div>
+    <div class="field">
+      <label id="lbl-dept">Select Department</label>
+      <div class="dept-chips" id="dept-chips">
+        <div class="dept-chip" data-val="Soft Service" onclick="selectDept(this)">🧹 Soft Service</div>
+        <div class="dept-chip" data-val="Hard Service" onclick="selectDept(this)">🔧 Hard Service</div>
+        <div class="dept-chip" data-val="Waste Management" onclick="selectDept(this)">♻️ Waste Mgmt</div>
+        <div class="dept-chip other-chip" data-val="" onclick="selectDeptOther(this)">✏️ Other: <input type="text" id="other-dept-input" placeholder="type here" onclick="event.stopPropagation()" oninput="updateOtherDept(this)"></div>
+      </div>
+    </div>
+    <div class="field">
+      <label id="lbl-project">Project / Site</label>
+      <div class="select-wrap">
+        <select id="inp-project">
+          <option value="">-- Select Project --</option>
+          <option>NEOM – Trojena</option>
+          <option>NEOM – Hospital</option>
+          <option>NEOM – Oxagon</option>
+                    <option>Other</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="error-msg" id="reg-error">⚠️ Please fill all fields and select a department.</div>
+  <button class="btn-begin" id="btn-begin" onclick="beginQuiz()">▶ BEGIN QUIZ</button>
+
+</div>
+
+<!-- ══════════════════════════════════════
+  HUD
+══════════════════════════════════════ -->
+<div id="hud">
+  <div class="hud-left">
+    <div class="hud-lbl" id="hud-lbl">SCORE</div>
+    <div class="hud-score" id="hud-score">0</div>
+    <div class="timer-wrap"><div class="timer-bar" id="timer-bar"></div></div>
+  </div>
+  <div class="hud-right">
+    <div class="hud-lives" id="hud-lives"></div>
+    <div class="hud-q" id="hud-q">Q 1 / 10</div>
+    <div class="hud-streak" id="hud-streak"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+  SCREEN 2: QUIZ
+══════════════════════════════════════ -->
+<div class="screen" id="quiz-screen">
+  <div id="q-inner"></div>
+</div>
+
+<!-- ══════════════════════════════════════
+  SCREEN 3: RESULT
+══════════════════════════════════════ -->
+<div class="screen" id="result-screen">
+
+  <div class="result-header">
+    <span class="r-medal" id="r-medal">🏆</span>
+    <div class="r-title" id="r-title">Quiz Complete</div>
+    <div class="r-name-badge" id="r-name-badge">Worker Name</div>
+  </div>
+
+  <div style="padding:0 16px;width:100%;margin-top:50px;display:flex;flex-direction:column;align-items:center;">
+
+    <div class="score-card pop">
+      <div class="score-ring" id="r-ring" style="--pct:0%">
+        <div class="score-num" id="r-pct">0/10</div>
+      </div>
+      <div class="pass-badge" id="r-pass-badge">–</div>
+      <div class="stats-row" style="width:100%">
+        <div class="stat-b"><div class="stat-v" id="r-c">0</div><div class="stat-l" id="lbl-right">✅ Right</div></div>
+        <div class="stat-b"><div class="stat-v" id="r-t">10</div><div class="stat-l" id="lbl-total">Total</div></div>
+        <div class="stat-b"><div class="stat-v" id="r-time">–</div><div class="stat-l" id="lbl-time">⏱ Time</div></div>
+      </div>
+    </div>
+
+    <!-- Worker info recap -->
+    <div class="info-card">
+      <div class="info-row"><span class="info-lbl" id="il-name">Name</span><span class="info-val" id="ir-name">–</span></div>
+      <div class="info-row"><span class="info-lbl" id="il-id">ID</span><span class="info-val" id="ir-id">–</span></div>
+      <div class="info-row"><span class="info-lbl" id="il-dept">Dept</span><span class="info-val" id="ir-dept">–</span></div>
+      <div class="info-row"><span class="info-lbl" id="il-proj">Project</span><span class="info-val" id="ir-proj">–</span></div>
+      <div class="info-row"><span class="info-lbl" id="il-date">Date</span><span class="info-val" id="ir-date">–</span></div>
+    </div>
+
+    <div class="submit-status" id="submit-status"></div>
+
+    <div class="rev-title" id="lbl-review">REVIEW</div>
+    <div class="rev-list" id="r-review"></div>
+
+    <div class="btn-row">
+      <button class="btn-begin" style="flex:2" id="btn-again" onclick="restartFull()">🔄 Retry</button>
+      <button class="btn-sec" id="btn-home" onclick="goHome()">🏠 Home</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- #app -->
+<div class="toast" id="toast"></div>
+<div class="streak-badge" id="streak-badge"></div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  GOOGLE SHEETS CONFIG
+//  Replace SHEET_URL with your Apps Script Web App URL
+// ═══════════════════════════════════════════════
+const SHEET_URL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
+// To set up:
+// 1. Open Google Sheets → Extensions → Apps Script
+// 2. Paste the doPost function (see comment at bottom)
+// 3. Deploy as Web App → Anyone → Copy URL → paste above
+
+// ═══════════════════════════════════════════════
+//  SVG ICON FUNCTIONS
+//  Coloured equipment on WHITE/transparent bg (no coloured circle)
+// ═══════════════════════════════════════════════
+function svgBucket(col, size=44){
+  return `<svg width="${size}" height="${size}" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M14 19 Q22 12 30 19" stroke="${col}" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M13 21 L16 35 Q22 38 28 35 L31 21 Z" fill="${col}"/>
+    <path d="M17 23 L17.5 33" stroke="white" stroke-width="1.5" opacity="0.4" stroke-linecap="round"/>
+    <rect x="12.5" y="20" width="19" height="3.5" rx="1.75" fill="${col}"/>
+    <rect x="12.5" y="20" width="19" height="1.5" rx="0.75" fill="rgba(0,0,0,0.15)"/>
+  </svg>`;
+}
+
+function svgMop(col, size=44){
+  return `<svg width="${size}" height="${size}" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="22" y1="4" x2="22" y2="30" stroke="${col}" stroke-width="3" stroke-linecap="round"/>
+    <ellipse cx="22" cy="32" rx="10" ry="5" fill="${col}" opacity="0.9"/>
+    <path d="M12 32 Q14 38 17 35 Q19 40 22 37 Q25 40 27 35 Q30 38 32 32" stroke="${col}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <circle cx="22" cy="8" r="3" fill="${col}"/>
+  </svg>`;
+}
+
+function svgDuster(col, size=44){
+  return `<svg width="${size}" height="${size}" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="7" y="17" width="30" height="13" rx="4" fill="${col}"/>
+    <path d="M7 26 Q11 32 16 27 Q22 22 28 27 Q33 32 37 26 L37 30 Q33 36 28 31 Q22 26 16 31 Q11 36 7 30 Z" fill="${col}" opacity="0.65"/>
+    <line x1="15" y1="19" x2="15" y2="28" stroke="white" stroke-width="1" opacity="0.3"/>
+    <line x1="22" y1="19" x2="22" y2="28" stroke="white" stroke-width="1" opacity="0.3"/>
+    <line x1="29" y1="19" x2="29" y2="28" stroke="white" stroke-width="1" opacity="0.3"/>
+    <rect x="9" y="18" width="7" height="3" rx="1.5" fill="white" opacity="0.2"/>
+  </svg>`;
+}
+
+function svgScrubber(col, size=44){
+  return `<svg width="${size}" height="${size}" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="10" y="20" width="24" height="12" rx="4" fill="${col}"/>
+    <rect x="13" y="16" width="18" height="6" rx="3" fill="${col}" opacity="0.8"/>
+    <line x1="10" y1="26" x2="34" y2="26" stroke="white" stroke-width="1" opacity="0.2"/>
+    <circle cx="16" cy="32" r="2" fill="white" opacity="0.3"/>
+    <circle cx="22" cy="32" r="2" fill="white" opacity="0.3"/>
+    <circle cx="28" cy="32" r="2" fill="white" opacity="0.3"/>
+  </svg>`;
+}
+
+// Render coloured equipment trio (bucket + mop + duster) for colour key
+function eqTrio(col, size=32){
+  return `<div style="display:flex;gap:2px;align-items:center">${svgBucket(col,size)}${svgMop(col,size)}${svgDuster(col,size)}</div>`;
+}
+
+// ═══════════════════════════════════════════════
+//  TRANSLATIONS
+// ═══════════════════════════════════════════════
+const T = {
+  en:{
+    pickcolour:'Which colour? 👇',
+    safeornot:'Safe ✅ or Not Safe ❌?',
+    okwrong:'OK ✅ or Wrong ❌?',
+    safe:'✅ SAFE', notsafe:'❌ NOT SAFE',
+    ok:'✅ OK', wrong:'❌ WRONG',
+    next:'Next →', results:'See Results 🏆',
+    playagain:'🔄 Retry', home:'🏠 Home',
+    score:'SCORE', review:'ANSWER REVIEW',
+    right:'✅ Right', total:'Total', time_lbl:'⏱ Time',
+    correct_toast:'✅ Correct!', wrong_toast:'❌ Wrong!', time_toast:'⏰ Time up!',
+    streak:'🔥 STREAK!', bonus:'bonus',
+    pass:'✅ PASS', fail:'❌ FAIL',
+    pass_msg:'Great work! You passed.', fail_msg:'Score 7/10 to pass. Try again!',
+    sending:'⏳ Sending results...', sent:'✅ Results saved to Google Sheets!', err:'⚠️ Could not save. Screenshot this page.',
+    medals:['🏆 Expert!','Excellent BICS knowledge.','🥇 Great!','Strong result.','🥈 Good','Review your wrong answers.','🥉 Keep practising','Study the colour guide and retry.'],
+    zones:{red:'🚽 WC/Toilets',blue:'🏢 Offices',green:'🍽️ Food Area',yellow:'🏥 Clinical',white:'🧼 Food Prep',orange:'🍺 Bar/Leisure'},
+    // registration
+    personal:'Personal Details', dept_sec:'Department',
+    lbl_name:'Full Name', lbl_id:'EFSIM ID', lbl_dept:'Select Department', lbl_project:'Project / Site',
+    begin:'▶ BEGIN QUIZ',
+    il_name:'Name', il_id:'ID', il_dept:'Dept', il_proj:'Project', il_date:'Date',
+    reg_sub:'Hygiene Standards Assessment',
+  },
+  ur:{
+    pickcolour:'صحیح رنگ؟ 👇',
+    safeornot:'محفوظ ✅ یا غلط ❌؟',
+    okwrong:'درست ✅ یا غلط ❌؟',
+    safe:'✅ محفوظ', notsafe:'❌ غلط',
+    ok:'✅ درست', wrong:'❌ غلط',
+    next:'اگلا →', results:'نتیجہ دیکھیں 🏆',
+    playagain:'🔄 دوبارہ', home:'🏠 گھر',
+    score:'سکور', review:'جائزہ',
+    right:'✅ درست', total:'کل', time_lbl:'⏱ وقت',
+    correct_toast:'✅ صحیح!', wrong_toast:'❌ غلط!', time_toast:'⏰ وقت ختم!',
+    streak:'🔥 سلسلہ!', bonus:'بونس',
+    pass:'✅ پاس', fail:'❌ فیل',
+    pass_msg:'شاباش! آپ پاس ہوئے۔', fail_msg:'پاس کے لیے 7/10 چاہیے۔',
+    sending:'⏳ نتائج بھیجے جا رہے ہیں...', sent:'✅ نتائج محفوظ!', err:'⚠️ محفوظ نہیں ہوا۔',
+    medals:['🏆 ماہر!','بہترین علم۔','🥇 شاندار!','اچھا نتیجہ۔','🥈 ٹھیک ہے','غلطیاں دیکھیں۔','🥉 مشق کریں','چارٹ دوبارہ پڑھیں۔'],
+    zones:{red:'🚽 ٹوائلٹ',blue:'🏢 دفتر',green:'🍽️ کھانا',yellow:'🏥 کلینیکل',white:'🧼 فوڈ پریپ',orange:'🍺 بار'},
+    personal:'ذاتی معلومات', dept_sec:'شعبہ',
+    lbl_name:'پورا نام', lbl_id:'EFSIM ID', lbl_dept:'شعبہ منتخب کریں', lbl_project:'پروجیکٹ',
+    begin:'▶ شروع کریں',
+    il_name:'نام', il_id:'ID', il_dept:'شعبہ', il_proj:'پروجیکٹ', il_date:'تاریخ',
+    reg_sub:'حفظانِ صحت معیار',
+  },
+  hi:{
+    pickcolour:'सही रंग? 👇',
+    safeornot:'सुरक्षित ✅ या असुरक्षित ❌?',
+    okwrong:'सही ✅ या गलत ❌?',
+    safe:'✅ सुरक्षित', notsafe:'❌ असुरक्षित',
+    ok:'✅ सही', wrong:'❌ गलत',
+    next:'अगला →', results:'परिणाम 🏆',
+    playagain:'🔄 फिर खेलें', home:'🏠 होम',
+    score:'स्कोर', review:'समीक्षा',
+    right:'✅ सही', total:'कुल', time_lbl:'⏱ समय',
+    correct_toast:'✅ सही!', wrong_toast:'❌ गलत!', time_toast:'⏰ समय खत्म!',
+    streak:'🔥 स्ट्रीक!', bonus:'बोनस',
+    pass:'✅ पास', fail:'❌ फेल',
+    pass_msg:'शाबाश! आप पास हुए।', fail_msg:'पास के लिए 7/10 चाहिए।',
+    sending:'⏳ भेजा जा रहा है...', sent:'✅ परिणाम सहेजे गए!', err:'⚠️ सहेजा नहीं गया।',
+    medals:['🏆 विशेषज्ञ!','शानदार ज्ञान।','🥇 बढ़िया!','अच्छा स्कोर।','🥈 ठीक है','गलत देखें।','🥉 अभ्यास करें','चार्ट फिर पढ़ें।'],
+    zones:{red:'🚽 शौचालय',blue:'🏢 कार्यालय',green:'🍽️ खाना',yellow:'🏥 क्लिनिकल',white:'🧼 फूड प्रेप',orange:'🍺 बार'},
+    personal:'व्यक्तिगत विवरण', dept_sec:'विभाग',
+    lbl_name:'पूरा नाम', lbl_id:'EFSIM ID', lbl_dept:'विभाग चुनें', lbl_project:'प्रोजेक्ट',
+    begin:'▶ शुरू करें',
+    il_name:'नाम', il_id:'ID', il_dept:'विभाग', il_proj:'प्रोजेक्ट', il_date:'तारीख',
+    reg_sub:'स्वच्छता मानक परीक्षण',
+  },
+  ne:{
+    pickcolour:'सही रङ? 👇',
+    safeornot:'सुरक्षित ✅ वा असुरक्षित ❌?',
+    okwrong:'सही ✅ वा गलत ❌?',
+    safe:'✅ सुरक्षित', notsafe:'❌ असुरक्षित',
+    ok:'✅ सही', wrong:'❌ गलत',
+    next:'अर्को →', results:'नतिजा 🏆',
+    playagain:'🔄 फेरि', home:'🏠 होम',
+    score:'स्कोर', review:'समीक्षा',
+    right:'✅ सही', total:'जम्मा', time_lbl:'⏱ समय',
+    correct_toast:'✅ सही!', wrong_toast:'❌ गलत!', time_toast:'⏰ समय सकियो!',
+    streak:'🔥 स्ट्रीक!', bonus:'बोनस',
+    pass:'✅ पास', fail:'❌ फेल',
+    pass_msg:'सानदार! पास भयो।', fail_msg:'पासका लागि 7/10 चाहिन्छ।',
+    sending:'⏳ पठाउँदैछ...', sent:'✅ नतिजा सुरक्षित!', err:'⚠️ सुरक्षित भएन।',
+    medals:['🏆 विशेषज्ञ!','उत्कृष्ट ज्ञान।','🥇 राम्रो!','राम्रो स्कोर।','🥈 ठीकै छ','गलत हेर्नुस्।','🥉 अभ्यास गर्नुस्','चार्ट फेरि पढ्नुस्।'],
+    zones:{red:'🚽 शौचालय',blue:'🏢 कार्यालय',green:'🍽️ खाना',yellow:'🏥 क्लिनिकल',white:'🧼 फूड प्रेप',orange:'🍺 बार'},
+    personal:'व्यक्तिगत विवरण', dept_sec:'विभाग',
+    lbl_name:'पूरा नाम', lbl_id:'EFSIM ID', lbl_dept:'विभाग छान्नुस्', lbl_project:'प्रोजेक्ट',
+    begin:'▶ सुरु गर्नुस्',
+    il_name:'नाम', il_id:'ID', il_dept:'विभाग', il_proj:'प्रोजेक्ट', il_date:'मिति',
+    reg_sub:'स्वच्छता मानक परीक्षण',
+  },
+  bn:{
+    pickcolour:'সঠিক রঙ? 👇',
+    safeornot:'নিরাপদ ✅ না বিপজ্জনক ❌?',
+    okwrong:'সঠিক ✅ না ভুল ❌?',
+    safe:'✅ নিরাপদ', notsafe:'❌ বিপজ্জনক',
+    ok:'✅ সঠিক', wrong:'❌ ভুল',
+    next:'পরবর্তী →', results:'ফলাফল 🏆',
+    playagain:'🔄 আবার', home:'🏠 হোম',
+    score:'স্কোর', review:'পর্যালোচনা',
+    right:'✅ সঠিক', total:'মোট', time_lbl:'⏱ সময়',
+    correct_toast:'✅ সঠিক!', wrong_toast:'❌ ভুল!', time_toast:'⏰ সময় শেষ!',
+    streak:'🔥 স্ট্রীক!', bonus:'বোনাস',
+    pass:'✅ পাস', fail:'❌ ফেল',
+    pass_msg:'দারুণ! আপনি পাস করেছেন।', fail_msg:'পাসের জন্য ৭/১০ দরকার।',
+    sending:'⏳ পাঠানো হচ্ছে...', sent:'✅ ফলাফল সংরক্ষিত!', err:'⚠️ সংরক্ষণ হয়নি।',
+    medals:['🏆 বিশেষজ্ঞ!','অসাধারণ জ্ঞান।','🥇 দারুণ!','ভালো স্কোর।','🥈 ঠিক আছে','ভুল দেখুন।','🥉 অনুশীলন করুন','চার্ট আবার পড়ুন।'],
+    zones:{red:'🚽 টয়লেট',blue:'🏢 অফিস',green:'🍽️ খাবার',yellow:'🏥 ক্লিনিকাল',white:'🧼 ফুড প্রেপ',orange:'🍺 বার'},
+    personal:'ব্যক্তিগত তথ্য', dept_sec:'বিভাগ',
+    lbl_name:'পুরো নাম', lbl_id:'EFSIM ID', lbl_dept:'বিভাগ নির্বাচন', lbl_project:'প্রজেক্ট',
+    begin:'▶ শুরু করুন',
+    il_name:'নাম', il_id:'ID', il_dept:'বিভাগ', il_proj:'প্রজেক্ট', il_date:'তারিখ',
+    reg_sub:'স্বাস্থ্যবিধি মানদণ্ড মূল্যায়ন',
+  },
+};
+
+let LANG='en';
+function t(k){ return (T[LANG]&&T[LANG][k]) || T.en[k] || k; }
+function tz(k){ return (T[LANG]&&T[LANG].zones&&T[LANG].zones[k]) || T.en.zones[k] || k; }
+
+function setLang(l){
+  LANG=l;
+  document.querySelectorAll('.lang-btn').forEach(b=>{
+    b.classList.toggle('active', b.getAttribute('onclick').includes(`'${l}'`));
+  });
+  applyLangToUI();
+}
+
+function applyLangToUI(){
+  const set=(id,txt)=>{ const el=document.getElementById(id); if(el) el.textContent=txt; };
+  set('reg-sub-txt', t('reg_sub'));
+  set('lbl-personal', t('personal'));
+  set('lbl-dept-sec', t('dept_sec'));
+  set('lbl-name', t('lbl_name'));
+  set('lbl-id', t('lbl_id'));
+  set('lbl-dept', t('lbl_dept'));
+  set('lbl-project', t('lbl_project'));
+  set('btn-begin', t('begin'));
+  const inp=document.getElementById('inp-name'); if(inp) inp.placeholder=t('lbl_name');
+}
+
+// ═══════════════════════════════════════════════
+//  COLOUR DEFINITIONS
+// ═══════════════════════════════════════════════
+const COLOURS = [
+  {key:'red',    bg:'#EF5350', label:'RED',    icon:'🔴', textDark:false},
+  {key:'blue',   bg:'#1976D2', label:'BLUE',   icon:'🔵', textDark:false},
+  {key:'green',  bg:'#2E7D32', label:'GREEN',  icon:'🟢', textDark:false},
+  {key:'yellow', bg:'#F9A825', label:'YELLOW', icon:'🟡', textDark:true},
+  {key:'white',  bg:'#9E9E9E', label:'WHITE',  icon:'⚪', textDark:false},
+  {key:'orange', bg:'#E65100', label:'ORANGE', icon:'🟠', textDark:false},
+];
+function getCol(k){ return COLOURS.find(c=>c.key===k)||COLOURS[0]; }
+
+// Build colour key on splash — inject trios into each card
+function buildColourKey(){
+  const grid=document.getElementById('ck-grid');
+  if(!grid) return;
+  const zones=['red','blue','green','yellow','white','orange'];
+  const colMap={'red':'#EF5350','blue':'#1976D2','green':'#2E7D32','yellow':'#F9A825','white':'#9E9E9E','orange':'#E65100'};
+  const icons={'red':'🔴','blue':'🔵','green':'🟢','yellow':'🟡','white':'⚪','orange':'🟠'};
+  const nameCols={'red':'#EF5350','blue':'#1565C0','green':'#2E7D32','yellow':'#E65100','white':'#757575','orange':'#E65100'};
+  grid.innerHTML='';
+  zones.forEach(z=>{
+    const col=colMap[z];
+    grid.innerHTML+=`<div class="ck-card">
+      ${eqTrio(col,28)}
+      <div class="ck-name" style="color:${nameCols[z]}" id="ck-${z}">${icons[z]} ${z.toUpperCase()}<br><span style="font-size:9px;opacity:.8">${tz(z)}</span></div>
+    </div>`;
+  });
+}
+
+// ═══════════════════════════════════════════════
+//  DEPT SELECTION
+// ═══════════════════════════════════════════════
+let selectedDept = '';
+function selectDept(el){
+  document.querySelectorAll('.dept-chip').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedDept = el.getAttribute('data-val');
+}
+function selectDeptOther(el){
+  document.querySelectorAll('.dept-chip').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedDept = document.getElementById('other-dept-input').value || 'Other';
+}
+function updateOtherDept(inp){
+  selectedDept = inp.value || 'Other';
+}
+
+// ═══════════════════════════════════════════════
+//  REGISTRATION → BEGIN
+// ═══════════════════════════════════════════════
+let WORKER = {};
+
+function beginQuiz(){
+  const name = document.getElementById('inp-name').value.trim();
+  const id   = document.getElementById('inp-id').value.trim();
+  const proj = document.getElementById('inp-project').value;
+  const err  = document.getElementById('reg-error');
+
+  if(!name || !id || !selectedDept || !proj){
+    err.classList.add('show');
+    err.textContent = '⚠️ ' + (LANG==='ur'?'تمام خانے بھریں':LANG==='hi'?'सभी फ़ील्ड भरें':LANG==='ne'?'सबै फिल्ड भर्नुस्':LANG==='bn'?'সব তথ্য দিন':'Please fill all fields and select a department.');
+    return;
+  }
+  err.classList.remove('show');
+
+  WORKER = {
+    name, id,
+    dept: selectedDept,
+    project: proj,
+    lang: LANG,
+    date: new Date().toLocaleDateString('en-GB'),
+    startTime: Date.now(),
+  };
+  startGame();
+}
+
+// ═══════════════════════════════════════════════
+//  QUESTIONS
+// ═══════════════════════════════════════════════
+const QUESTIONS = [
+
+{type:'colourtap',
+ scene:{emoji:'🚽',label:'🚽 WC / Toilet',bg:'rgba(239,83,80,.08)'},
+ instrKey:'pickcolour', answer:'red',
+ explain:{ok:'RED = 🚽 WC / Toilets only',bad:'WC needs RED equipment',
+   visual:[{col:'#EF5350',eq:'bucket',txt:'RED bucket → 🚽 WC'},{col:'#EF5350',eq:'duster',txt:'RED cloth → 🚽 WC'}]}},
+
+{type:'colourtap',
+ scene:{emoji:'🔪🥦',label:'🔪 Food Prep / Kitchen',bg:'rgba(158,158,158,.08)'},
+ instrKey:'pickcolour', answer:'white',
+ explain:{ok:'WHITE = 🔪 Food Prep surfaces',bad:'Food Prep = WHITE equipment',
+   visual:[{col:'#9E9E9E',eq:'bucket',txt:'WHITE → 🔪 Prep'},{col:'#9E9E9E',eq:'duster',txt:'WHITE cloth → 🔪'}]}},
+
+{type:'colourtap',
+ scene:{emoji:'🏢🖥️',label:'🏢 Office / Corridor',bg:'rgba(25,118,210,.08)'},
+ instrKey:'pickcolour', answer:'blue',
+ explain:{ok:'BLUE = 🏢 Office & corridors',bad:'Office = BLUE equipment',
+   visual:[{col:'#1976D2',eq:'bucket',txt:'BLUE → 🏢 Office'},{col:'#1976D2',eq:'mop',txt:'BLUE mop → 🏢'}]}},
+
+{type:'colourtap',
+ scene:{emoji:'🍽️🥗',label:'🍽️ Dining / Restaurant',bg:'rgba(46,125,50,.08)'},
+ instrKey:'pickcolour', answer:'green',
+ explain:{ok:'GREEN = 🍽️ Food service / dining',bad:'Dining = GREEN equipment',
+   visual:[{col:'#2E7D32',eq:'duster',txt:'GREEN cloth → 🍽️ Dining'},{col:'#2E7D32',eq:'mop',txt:'GREEN mop → 🍽️'}]}},
+
+{type:'colourtap',
+ scene:{emoji:'🏥💉',label:'🏥 Clinical / Isolation',bg:'rgba(249,168,37,.08)'},
+ instrKey:'pickcolour', answer:'yellow',
+ explain:{ok:'YELLOW = 🏥 Clinical / Isolation rooms',bad:'Clinical = YELLOW equipment',
+   visual:[{col:'#F9A825',eq:'bucket',txt:'YELLOW → 🏥 Clinical'},{col:'#F9A825',eq:'duster',txt:'YELLOW cloth → 🏥'}]}},
+
+{type:'colourtap',
+ scene:{emoji:'🍺🎱',label:'🍺 Bar / Leisure Area',bg:'rgba(230,81,0,.08)'},
+ instrKey:'pickcolour', answer:'orange',
+ explain:{ok:'ORANGE = 🍺 Bar & leisure areas',bad:'Bar = ORANGE equipment',
+   visual:[{col:'#E65100',eq:'bucket',txt:'ORANGE → 🍺 Bar'},{col:'#E65100',eq:'duster',txt:'ORANGE cloth → 🍺'}]}},
+
+{type:'tf',
+ scene:{type:'combo',
+   items:[{col:'#EF5350',eq:'duster',label:'RED cloth'},{arrow:true},{emoji:'🍽️',label:'Food surface'}],
+   bg:'rgba(220,38,38,.06)'},
+ instrKey:'safeornot', answer:false,
+ explain:{ok:'Correct! RED cloth on food = ❌ DANGEROUS',bad:'RED is WC ONLY. Food needs GREEN/WHITE.',
+   visual:[{col:'#EF5350',eq:'duster',txt:'🔴 RED → 🚽 WC ONLY'},{col:'#2E7D32',eq:'duster',txt:'🟢 GREEN → 🍽️ Food'}]}},
+
+{type:'tf',
+ scene:{type:'combo',
+   items:[{col:'#1976D2',eq:'bucket',label:'BLUE bucket'},{arrow:true},{emoji:'🏢',label:'Office'}],
+   bg:'rgba(25,118,210,.06)'},
+ instrKey:'safeornot', answer:true,
+ explain:{ok:'Correct! BLUE bucket + 🏢 Office = ✅ Perfect',bad:'BLUE IS correct for offices!',
+   visual:[{col:'#1976D2',eq:'bucket',txt:'🔵 BLUE → 🏢 Office ✅'}]}},
+
+{type:'mcqvis',
+ scene:{type:'combo',
+   items:[{col:'#EF5350',eq:'bucket',label:'RED bucket'},{arrow:true},{emoji:'🍽️',label:'Food area'}],
+   bg:'rgba(220,38,38,.06)', wrongMark:true},
+ instrKey:'okwrong',
+ opts:[{icon:'✅',txtKey:'ok'},{icon:'❌',txtKey:'wrong'}],
+ answer:1,
+ explain:{ok:'RED bucket in food area = WRONG ❌',bad:'RED is WC only! Food = GREEN.',
+   visual:[{col:'#EF5350',eq:'bucket',txt:'🔴 RED → 🚽 WC only'},{col:'#2E7D32',eq:'bucket',txt:'🟢 GREEN → 🍽️ Food'}]}},
+
+{type:'tf',
+ scene:{type:'combo',
+   items:[{col:'#2E7D32',eq:'duster',label:'GREEN cloth'},{arrow:true},{emoji:'🚽',label:'Toilet'}],
+   bg:'rgba(220,38,38,.06)'},
+ instrKey:'safeornot', answer:false,
+ explain:{ok:'Correct! GREEN in toilet = ❌ WRONG',bad:'GREEN is food only. 🚽 WC = RED.',
+   visual:[{col:'#2E7D32',eq:'duster',txt:'🟢 GREEN → 🍽️ Food'},{col:'#EF5350',eq:'duster',txt:'🔴 RED → 🚽 WC'}]}},
+
+{type:'mcqvis',
+ scene:{type:'combo',
+   items:[{col:'#F9A825',eq:'bucket',label:'YELLOW bucket'},{arrow:true},{emoji:'🏢',label:'Office'}],
+   bg:'rgba(220,38,38,.06)', wrongMark:true},
+ instrKey:'okwrong',
+ opts:[{icon:'✅',txtKey:'ok'},{icon:'❌',txtKey:'wrong'}],
+ answer:1,
+ explain:{ok:'YELLOW in office = WRONG ❌',bad:'YELLOW = clinical only. Office = BLUE.',
+   visual:[{col:'#F9A825',eq:'bucket',txt:'🟡 YELLOW → 🏥 Clinical'},{col:'#1976D2',eq:'bucket',txt:'🔵 BLUE → 🏢 Office'}]}},
+
+{type:'mcqvis',
+ scene:{type:'combo',
+   items:[{col:'#9E9E9E',eq:'duster',label:'WHITE cloth'},{arrow:true},{emoji:'🔪',label:'Food Prep'}],
+   bg:'rgba(46,125,50,.06)'},
+ instrKey:'okwrong',
+ opts:[{icon:'✅',txtKey:'ok'},{icon:'❌',txtKey:'wrong'}],
+ answer:0,
+ explain:{ok:'WHITE cloth on food prep = ✅ Correct!',bad:'WHITE IS correct for food prep surfaces.',
+   visual:[{col:'#9E9E9E',eq:'duster',txt:'⚪ WHITE → 🔪 Food Prep ✅'}]}},
+];
+
+// ═══════════════════════════════════════════════
+//  RENDER HELPERS
+// ═══════════════════════════════════════════════
+function renderEq(col, eq, size=40){
+  if(eq==='bucket') return svgBucket(col,size);
+  if(eq==='mop') return svgMop(col,size);
+  if(eq==='duster') return svgDuster(col,size);
+  if(eq==='scrubber') return svgScrubber(col,size);
+  return svgBucket(col,size);
+}
+
+function renderScene(q){
+  const s=q.scene;
+  if(s.type==='combo'){
+    let row='';
+    s.items.forEach(it=>{
+      if(it.arrow){
+        row+=`<div class="scene-item"><span style="font-size:26px;color:var(--text3)">→</span></div>`;
+      } else if(it.emoji){
+        row+=`<div class="scene-item"><span style="font-size:50px">${it.emoji}</span><span>${it.label}</span></div>`;
+      } else {
+        row+=`<div class="scene-item">${renderEq(it.col,it.eq,52)}<span>${it.label}</span></div>`;
+      }
+    });
+    return `<div class="scene-box" style="${s.bg?'background:'+s.bg:''}">
+      ${s.wrongMark?'<div class="wrong-mark">⚠️</div>':''}
+      <div class="scene-row">${row}</div></div>`;
+  }
+  return `<div class="scene-box" style="${s.bg?'background:'+s.bg:''}">
+    <div class="scene-emoji">${s.emoji}</div>
+    <div class="scene-label">${s.label||''}</div>
+  </div>`;
+}
+
+function buildFbScene(visuals){
+  if(!visuals||!visuals.length) return '';
+  let h=`<div class="fb-scene">`;
+  visuals.forEach(v=>{
+    h+=`<div class="fb-scene-item">${renderEq(v.col,v.eq,30)}<span>${v.txt}</span></div>`;
+  });
+  return h+`</div>`;
+}
+
+// ═══════════════════════════════════════════════
+//  STATE & GAME
+// ═══════════════════════════════════════════════
+let G={};
+const TIMER=20,PTS=100,PTS_TIME=4,PTS_STREAK=20;
+
+function shuffle(a){ return [...a].sort(()=>Math.random()-.5); }
+function $(id){ return document.getElementById(id); }
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $(id).classList.add('active'); $(id).scrollTop=0;
+}
+function toast(msg,d=1800){ const el=$('toast');el.textContent=msg;el.classList.add('on');setTimeout(()=>el.classList.remove('on'),d); }
+function streakBadge(n){
+  const b=$('streak-badge');
+  b.innerHTML=`${t('streak')}<br><small>+${n*PTS_STREAK} ${t('bonus')}</small>`;
+  b.classList.add('on'); setTimeout(()=>b.classList.remove('on'),1400);
+}
+function updateHud(){
+  $('hud-score').textContent=G.score;
+  $('hud-q').textContent=`Q ${G.cur+1} / ${G.qs.length}`;
+  let h=''; for(let i=0;i<3;i++) h+=`<span class="heart${i>=G.lives?' lost':''}">❤️</span>`;
+  $('hud-lives').innerHTML=h;
+  $('hud-streak').textContent=G.streak>=2?`🔥 ×${G.streak}`:'';
+}
+function startTimer(){
+  if(G.practice) return;
+  clearInterval(G.timer); G.timeLeft=TIMER;
+  const bar=$('timer-bar'); bar.style.width='100%'; bar.classList.remove('warn');
+  G.timer=setInterval(()=>{
+    G.timeLeft--;
+    bar.style.width=(G.timeLeft/TIMER*100)+'%';
+    if(G.timeLeft<=6) bar.classList.add('warn');
+    if(G.timeLeft<=0){ clearInterval(G.timer); timeUp(); }
+  },1000);
+}
+function stopTimer(){ clearInterval(G.timer); }
+
+function startGame(practice=false){
+  G={
+    qs: shuffle(QUESTIONS).slice(0,10),
+    cur:0, score:0, lives:3,
+    streak:0, maxStreak:0, correct:0,
+    answered:false, timer:null, timeLeft:0,
+    practice: practice===true,
+    review:[], startTime: Date.now(),
+  };
+  $('hud').classList.add('on');
+  showScreen('quiz-screen');
+  updateHud(); renderQ();
+}
+
+function renderQ(){
+  G.answered=false;
+  const q=G.qs[G.cur];
+  updateHud(); startTimer();
+  const pills={colourtap:'🎨',mcqvis:'👀',tf:'✅/❌'};
+  let html=`<div class="anim" style="padding:12px 14px 0">`;
+  html+=`<div class="q-pill">${pills[q.type]||'❓'}</div>`;
+  html+=`<div class="q-num">Q${G.cur+1} / ${G.qs.length}</div>`;
+  html+=renderScene(q);
+  html+=`<div class="q-instruction">${t(q.instrKey)}</div>`;
+
+  if(q.type==='colourtap'){
+    html+=`<div class="ctap-grid">`;
+    COLOURS.forEach(c=>{
+      html+=`<button class="ctap" id="ct-${c.key}" onclick="ansColour('${c.key}')">
+        ${svgBucket(c.bg,38)}
+        <span style="color:${c.bg};font-weight:800">${c.icon} ${c.label}</span>
+      </button>`;
+    });
+    html+=`</div>`;
+  }
+  else if(q.type==='mcqvis'){
+    html+=`<div class="opts">`;
+    q.opts.forEach((o,i)=>{
+      html+=`<button class="opt" id="opt-${i}" onclick="ansMCQ(${i})">
+        <span class="opt-icon">${o.icon}</span>
+        <span>${t(o.txtKey)}</span></button>`;
+    });
+    html+=`</div>`;
+  }
+  else if(q.type==='tf'){
+    html+=`<div class="tf-row">
+      <button class="tf-btn tf-t" id="tf-yes" onclick="ansTF(true)"><span class="tf-big">✅</span>${t('safe')}</button>
+      <button class="tf-btn tf-f" id="tf-no" onclick="ansTF(false)"><span class="tf-big">❌</span>${t('notsafe')}</button>
+    </div>`;
+  }
+
+  html+=`<div class="fb" id="fb"></div>`;
+  html+=`<button class="btn-next" id="btn-next" onclick="nextQ()">${t('next')}</button>`;
+  html+=`</div>`;
+  $('q-inner').innerHTML=html;
+  $('quiz-screen').scrollTop=0;
+}
+
+function handleAnswer(ok,q){
+  if(G.answered) return;
+  G.answered=true; stopTimer();
+  const fb=$('fb');
+  if(ok){
+    G.correct++; G.streak++;
+    if(G.streak>G.maxStreak) G.maxStreak=G.streak;
+    let pts=PTS;
+    if(!G.practice) pts+=Math.floor(G.timeLeft*PTS_TIME);
+    if(G.streak>=2) pts+=G.streak*PTS_STREAK;
+    G.score+=pts; updateHud();
+    if(G.streak>=3) streakBadge(G.streak);
+    else toast(`${t('correct_toast')} +${pts}`);
+    fb.className='fb on ok';
+    fb.innerHTML=`<div class="fb-head ok">✅ ${q.explain.ok}</div>`+buildFbScene(q.explain.visual);
+  } else {
+    G.streak=0; G.lives--; updateHud();
+    toast(t('wrong_toast'));
+    fb.className='fb on bad';
+    fb.innerHTML=`<div class="fb-head bad">❌ ${q.explain.bad}</div>`+buildFbScene(q.explain.visual);
+    if(G.lives<=0){ setTimeout(endGame,1600); return; }
+  }
+  G.review.push({scene:q.scene.label||q.scene.emoji||'', ok, explain:ok?q.explain.ok:q.explain.bad});
+  const btn=$('btn-next'); btn.classList.add('on');
+  if(G.cur===G.qs.length-1) btn.textContent=t('results');
+}
+
+function ansColour(key){
+  if(G.answered) return;
+  const q=G.qs[G.cur]; const ok=key===q.answer;
+  COLOURS.forEach(c=>{ const b=$('ct-'+c.key);if(b){b.classList.add('disabled');b.disabled=true;} });
+  $('ct-'+key)?.classList.add(ok?'correct':'wrong');
+  if(!ok) $('ct-'+q.answer)?.classList.add('reveal');
+  handleAnswer(ok,q);
+}
+function ansMCQ(i){
+  if(G.answered) return;
+  const q=G.qs[G.cur]; const ok=i===q.answer;
+  q.opts.forEach((_,j)=>{ const b=$('opt-'+j);if(b)b.disabled=true; });
+  $('opt-'+i)?.classList.add(ok?'correct':'wrong');
+  if(!ok) $('opt-'+q.answer)?.classList.add('reveal');
+  handleAnswer(ok,q);
+}
+function ansTF(val){
+  if(G.answered) return;
+  const q=G.qs[G.cur]; const ok=val===q.answer;
+  const ty=$('tf-yes'),tn=$('tf-no');
+  ty.disabled=true; tn.disabled=true;
+  (val?ty:tn).classList.add(ok?'correct':'wrong');
+  if(!ok)(val?tn:ty).classList.add('reveal');
+  handleAnswer(ok,q);
+}
+function timeUp(){
+  if(G.answered) return;
+  G.answered=true;
+  const q=G.qs[G.cur];
+  G.streak=0; G.lives--; updateHud(); toast(t('time_toast'));
+  const fb=$('fb');
+  fb.className='fb on bad';
+  fb.innerHTML=`<div class="fb-head bad">⏰ ${q.explain.bad}</div>`+buildFbScene(q.explain.visual);
+  G.review.push({scene:q.scene.label||q.scene.emoji||'',ok:false,explain:q.explain.bad});
+  const btn=$('btn-next'); btn.classList.add('on');
+  if(G.cur===G.qs.length-1) btn.textContent=t('results');
+  if(G.lives<=0) setTimeout(endGame,1600);
+}
+function nextQ(){
+  G.cur++;
+  if(G.cur>=G.qs.length||G.lives<=0){ endGame(); return; }
+  renderQ();
+}
+
+// ═══════════════════════════════════════════════
+//  END GAME + GOOGLE SHEETS
+// ═══════════════════════════════════════════════
+function endGame(){
+  stopTimer(); $('hud').classList.remove('on');
+  const total=G.review.length||10;
+  const correct=G.correct;
+  const pct=Math.round((correct/total)*100);
+  const passed=correct>=7;
+  const elapsedSec=Math.round((Date.now()-WORKER.startTime)/1000);
+  const mins=Math.floor(elapsedSec/60), secs=elapsedSec%60;
+  const timeStr=`${mins}m ${secs}s`;
+
+  // medal
+  const medals=t('medals');
+  let med='🥉',title=medals[6],sub=medals[7];
+  if(pct>=90){med='🏆';title=medals[0];sub=medals[1];}
+  else if(pct>=70){med='🥇';title=medals[2];sub=medals[3];}
+  else if(pct>=50){med='🥈';title=medals[4];sub=medals[5];}
+
+  $('r-medal').textContent=med;
+  $('r-title').textContent=title;
+  $('r-name-badge').textContent=WORKER.name;
+  $('r-c').textContent=correct;
+  $('r-t').textContent=total;
+  $('r-time').textContent=timeStr;
+  $('r-pct').textContent=`${correct}/${total}`;
+  $('lbl-right').textContent=t('right');
+  $('lbl-total').textContent=t('total');
+  $('lbl-time').textContent=t('time_lbl');
+  $('lbl-review').textContent=t('review');
+  $('btn-again').textContent=t('playagain');
+  $('btn-home').textContent=t('home');
+
+  // pass/fail badge
+  const pb=$('r-pass-badge');
+  pb.textContent=passed?t('pass'):t('fail');
+  pb.className='pass-badge '+(passed?'pass':'fail');
+
+  // worker info
+  $('ir-name').textContent=WORKER.name;
+  $('ir-id').textContent=WORKER.id;
+  $('ir-dept').textContent=WORKER.dept;
+  $('ir-proj').textContent=WORKER.project;
+  $('ir-date').textContent=WORKER.date;
+  $('il-name').textContent=t('il_name');
+  $('il-id').textContent=t('il_id');
+  $('il-dept').textContent=t('il_dept');
+  $('il-proj').textContent=t('il_proj');
+  $('il-date').textContent=t('il_date');
+
+  // score ring
+  setTimeout(()=>$('r-ring').style.setProperty('--pct',(pct*3.6/360*100)+'%'),300);
+
+  // review list
+  let rh='';
+  G.review.forEach(r=>{
+    rh+=`<div class="rev-item">
+      <span class="rev-icon">${r.ok?'✅':'❌'}</span>
+      <div><strong>${r.scene}</strong><br><span style="color:var(--text3);font-size:11px">${r.explain}</span></div>
+    </div>`;
+  });
+  $('r-review').innerHTML=rh;
+
+  showScreen('result-screen');
+
+  // Send to Google Sheets
+  submitToSheets({
+    name:     WORKER.name,
+    efsim_id: WORKER.id,
+    dept:     WORKER.dept,
+    project:  WORKER.project,
+    score:    `${correct}/${total}`,
+    pct:      pct+'%',
+    pass_fail: passed?'PASS':'FAIL',
+    time_taken: timeStr,
+    date:     WORKER.date,
+    lang:     WORKER.lang,
+  });
+}
+
+async function submitToSheets(data){
+  const ss=$('submit-status');
+  ss.textContent=t('sending');
+  ss.className='submit-status sending';
+
+  // If URL not configured, show instructions
+  if(SHEET_URL.includes('YOUR_SCRIPT_ID')){
+    ss.textContent='⚙️ Connect Google Sheets: replace SHEET_URL in code with your Apps Script URL.';
+    ss.className='submit-status error';
+    return;
+  }
+
+  try{
+    const resp=await fetch(SHEET_URL,{
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(data)
+    });
+    ss.textContent=t('sent');
+    ss.className='submit-status sent';
+  } catch(e){
+    ss.textContent=t('err');
+    ss.className='submit-status error';
+  }
+}
+
+function restartFull(){
+  // Keep worker, just restart quiz
+  G={
+    qs:shuffle(QUESTIONS).slice(0,10),
+    cur:0, score:0, lives:3,
+    streak:0, maxStreak:0, correct:0,
+    answered:false, timer:null, timeLeft:0,
+    practice:false, review:[], startTime:Date.now(),
+  };
+  WORKER.startTime=Date.now();
+  $('hud').classList.add('on');
+  showScreen('quiz-screen');
+  updateHud(); renderQ();
+}
+
+function goHome(){
+  stopTimer();
+  $('hud').classList.remove('on');
+  showScreen('reg-screen');
+}
+
+// ═══════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded',()=>{
+  applyLangToUI();
+  // Inject colour key into splash if element exists
+  // (We use the reg screen only now, but keep key in reg header area)
+});
+
+/* ═══════════════════════════════════════════════
+   GOOGLE APPS SCRIPT — paste into your Sheet's Script Editor
+   
+   function doPost(e) {
+     var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+     var data = JSON.parse(e.postData.contents);
+     
+     // Add header row if empty
+     if (sheet.getLastRow() === 0) {
+       sheet.appendRow(['Timestamp','Name','EFSIM ID','Department','Project','Score','%','Pass/Fail','Time Taken','Date','Language']);
+     }
+     
+     sheet.appendRow([
+       new Date(),
+       data.name,
+       data.efsim_id,
+       data.dept,
+       data.project,
+       data.score,
+       data.pct,
+       data.pass_fail,
+       data.time_taken,
+       data.date,
+       data.lang
+     ]);
+     
+     return ContentService.createTextOutput(JSON.stringify({status:'ok'}))
+       .setMimeType(ContentService.MimeType.JSON);
+   }
+   
+   Deploy: Extensions → Apps Script → Deploy → New deployment → Web App
+   Execute as: Me | Who has access: Anyone → Deploy → copy URL → paste in SHEET_URL above
+═══════════════════════════════════════════════ */
+</script>
+</body>
+</html>
